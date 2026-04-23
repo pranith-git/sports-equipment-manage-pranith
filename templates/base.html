@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sports Equipment Management</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Animations -->
+    <style>
+        body {
+            background: #f4f6f9;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark px-3">
+    <span class="navbar-brand">Sports Equipment Management</span>
+    <div>
+        {% if session.get('admin_id') %}
+            <a href="/dashboard" class="btn btn-sm btn-outline-light">Dashboard</a>
+            <a href="/equipment" class="btn btn-sm btn-outline-light">Equipment</a>
+            <a href="/issue" class="btn btn-sm btn-outline-light">Issue</a>
+            <a href="/return" class="btn btn-sm btn-outline-light">Return</a>
+            <a href="/reports" class="btn btn-sm btn-outline-light">Reports</a>
+            <a href="/logout" class="btn btn-sm btn-outline-danger ms-2">Logout</a>
+        {% else %}
+            <a href="/login.html" class="btn btn-sm btn-outline-light">Admin Login</a>
+        {% endif %}
+    </div>
+</nav>
+
+<div class="container mt-4 fade-in">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</div>
+
+<!-- Scanner Modal -->
+<div class="modal fade" id="scannerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Scan Barcode</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="reader" width="100%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+    let html5QrcodeScanner = null;
+    let onScanSuccessCallback = null;
+
+    function openScanner(callback) {
+        onScanSuccessCallback = callback;
+        var myModal = new bootstrap.Modal(document.getElementById('scannerModal'));
+        myModal.show();
+        
+        setTimeout(() => {
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "reader",
+                    { fps: 10, qrbox: {width: 250, height: 250} },
+                    /* verbose= */ false);
+            }
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }, 200);
+
+        document.getElementById('scannerModal').addEventListener('hidden.bs.modal', function () {
+            if (html5QrcodeScanner) {
+                try {
+                    html5QrcodeScanner.clear();
+                } catch(e) {}
+            }
+        }, {once: true});
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        if (html5QrcodeScanner) {
+            try {
+                html5QrcodeScanner.clear();
+            } catch(e) {}
+        }
+        var myModalEl = document.getElementById('scannerModal');
+        var modal = bootstrap.Modal.getInstance(myModalEl);
+        if(modal) {
+            modal.hide();
+        }
+        if (onScanSuccessCallback) {
+            onScanSuccessCallback(decodedText);
+        }
+    }
+
+    function onScanFailure(error) {
+        // Handle scan failure silently
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Return Equipment</h3>
+
+<form method="GET" class="mb-3" id="return_search_form">
+    <div class="input-group">
+        <input type="text" class="form-control" name="student_id" id="return_student_id" placeholder="Student ID" value="{{ request.args.get('student_id', '') }}">
+        <button type="button" class="btn btn-outline-primary" onclick="openScanner(val => { document.getElementById('return_student_id').value = val; document.getElementById('return_search_form').submit(); })">
+            Scan with Camera
+        </button>
+        <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+</form>
+
+<div class="card p-4">
+    {% if student %}
+        <div class="alert alert-info">
+            Returning for: {{ student.name }} ({{ student.id }})
+        </div>
+    {% endif %}
+
+    {% if issues %}
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <select class="form-select mb-3" name="issue_id">
+            {% for i in issues %}
+            <option value="{{ i.issue_id }}">
+                {{ i.issue_id }} - {{ i.equipment_name }} (Qty: {{ i.quantity }})
+            </option>
+            {% endfor %}
+        </select>
+
+        <label class="form-label fw-semibold">Equipment Condition</label>
+        <div class="d-flex gap-3 mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="condition" id="cond_good" value="good" checked>
+                <label class="form-check-label text-success" for="cond_good">Good</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="condition" id="cond_damaged" value="damaged">
+                <label class="form-check-label text-warning" for="cond_damaged">Damaged</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="condition" id="cond_lost" value="lost">
+                <label class="form-check-label text-danger" for="cond_lost">Lost</label>
+            </div>
+        </div>
+
+        <div id="report_section" class="mb-3" style="display:none;">
+            <textarea class="form-control" name="damage_report" rows="2"
+                      placeholder="Brief description of damage / loss..."></textarea>
+        </div>
+
+        <button class="btn btn-warning w-100">Return</button>
+    </form>
+    {% elif student %}
+        <div class="alert alert-secondary">No active issues found for this student.</div>
+    {% else %}
+        <div class="alert alert-secondary">Scan a student barcode or enter their ID above to see active issues.</div>
+    {% endif %}
+</div>
+
+<script>
+    document.querySelectorAll('input[name="condition"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var section = document.getElementById('report_section');
+            section.style.display = (this.value === 'damaged' || this.value === 'lost') ? 'block' : 'none';
+        });
+    });
+</script>
+
+{% endblock %}

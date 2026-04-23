@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-4">Dashboard</h3>
+
+<!-- Stats Row -->
+<div class="row text-center mb-5">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h4 class="card-title">{{ stats.total_items }}</h4>
+                <p class="card-text">Total Physical Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h4 class="card-title">{{ stats.available_items }}</h4>
+                <p class="card-text">Items Available</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h4 class="card-title">{{ stats.issued_items }}</h4>
+                <p class="card-text">Currently Issued</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h5>Equipment</h5>
+            <a href="/equipment" class="btn btn-primary mt-2">Manage</a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h5>Issue</h5>
+            <a href="/issue" class="btn btn-success mt-2">Issue Item</a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h5>Return</h5>
+            <a href="/return" class="btn btn-warning mt-2">Return Item</a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h5>Reports</h5>
+            <a href="/reports" class="btn btn-dark mt-2">View</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

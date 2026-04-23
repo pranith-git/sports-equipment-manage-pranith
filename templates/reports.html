@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Reports</h3>
+
+<div class="card p-3 mb-4">
+    <form method="GET" action="/reports" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Student ID</label>
+            <input type="text" class="form-control" name="student_id" placeholder="Filter by ID..." value="{{ student_filter }}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status">
+                <option value="all" {% if status_filter == 'all' or not status_filter %}selected{% endif %}>All</option>
+                <option value="issued" {% if status_filter == 'issued' %}selected{% endif %}>Issued</option>
+                <option value="returned" {% if status_filter == 'returned' %}selected{% endif %}>Returned</option>
+                <option value="lost" {% if status_filter == 'lost' %}selected{% endif %}>Lost</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+</div>
+
+<div class="card p-3">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Issue ID</th>
+                <th>Student</th>
+                <th>Equipment</th>
+                <th>Qty</th>
+                <th>Issued On</th>
+                <th>Expected Return</th>
+                <th>Status</th>
+                <th>Condition</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for r in reports %}
+        <tr>
+            <td><small class="text-muted font-monospace">{{ r.issue_id }}</small></td>
+            <td>{{ r.student_name }}<br><small class="text-muted">{{ r.student_id }}</small></td>
+            <td>{{ r.equipment_name }}</td>
+            <td>{{ r.quantity }}</td>
+            <td>{{ r.issue_datetime }}</td>
+            <td>{{ r.expected_return_datetime }}</td>
+
+            {# --- Status badge --- #}
+            <td>
+                {% if r.status == 'issued' %}
+                    <span class="badge bg-primary">Issued</span>
+                {% elif r.status == 'returned' %}
+                    <span class="badge bg-success">Returned</span>
+                {% elif r.status == 'lost' %}
+                    <span class="badge bg-danger">Lost</span>
+                {% elif r.status == 'overdue' %}
+                    <span class="badge bg-warning text-dark">Overdue</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ r.status }}</span>
+                {% endif %}
+            </td>
+
+            {# --- Condition badge (only for returned/lost) --- #}
+            <td>
+                {% if r.equipment_condition == 'good' %}
+                    <span class="badge bg-success">Good</span>
+                {% elif r.equipment_condition == 'damaged' %}
+                    <span class="badge bg-warning text-dark">Damaged</span>
+                {% elif r.equipment_condition == 'lost' %}
+                    <span class="badge bg-danger">Lost</span>
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
+
+            <td><small>{{ r.loss_or_damage_report or '—' }}</small></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center text-muted">No records found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                <a class="page-link" href="?page={{ page - 1 }}&student_id={{ student_filter }}&status={{ status_filter }}">Previous</a>
+            </li>
+            
+            <li class="page-item disabled">
+                <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
+            </li>
+            
+            <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                <a class="page-link" href="?page={{ page + 1 }}&student_id={{ student_filter }}&status={{ status_filter }}">Next</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+{% endblock %}

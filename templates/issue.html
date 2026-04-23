@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Issue Equipment</h3>
+
+<div class="mb-3">
+    <button type="button" class="btn btn-outline-primary" onclick="openScanner(val => { document.querySelector('input[name=\'student_id\']').value = val; })">
+        Scan Student Barcode with Camera
+    </button>
+    <div class="form-text mt-1">Or click the Student ID input below and use your physical barcode scanner.</div>
+</div>
+
+<div class="card p-4">
+
+    {% if student %}
+        <div class="alert alert-success">
+            Student: {{ student.name }} ({{ student.id }})
+        </div>
+    {% endif %}
+
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input class="form-control mb-2" name="student_id"
+               value="{{ student.id if student else request.args.get('student_id', '') }}"
+               placeholder="Student ID">
+
+        <select class="form-select mb-2" name="equipment_id" id="equipment_select">
+            {% for item in equipment %}
+            <option value="{{ item.id }}"
+                    data-available="{{ item.available_quantity }}"
+                    {% if item.id|string == (selected_equipment|string) %}selected{% endif %}>
+                {{ item.name }} ({{ item.category or 'General' }}) — {{ item.available_quantity }} available
+            </option>
+            {% endfor %}
+        </select>
+
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <input class="form-control" type="number" name="quantity" id="qty_input"
+                   value="1" min="1" max="1" style="width: 120px;">
+            <small class="text-muted" id="qty_hint">Max: 1</small>
+        </div>
+
+        <button class="btn btn-success w-100">Issue</button>
+    </form>
+</div>
+
+<script>
+    function syncQtyMax() {
+        var sel = document.getElementById('equipment_select');
+        var opt = sel.options[sel.selectedIndex];
+        var avail = parseInt(opt ? opt.getAttribute('data-available') : 0) || 0;
+        var qtyInput = document.getElementById('qty_input');
+        qtyInput.max = avail;
+        if (avail === 0) {
+            qtyInput.value = 0;
+            qtyInput.disabled = true;
+        } else {
+            qtyInput.disabled = false;
+            if (parseInt(qtyInput.value) > avail) qtyInput.value = avail;
+            if (parseInt(qtyInput.value) < 1) qtyInput.value = 1;
+        }
+        document.getElementById('qty_hint').textContent = 'Max: ' + avail;
+    }
+
+    document.getElementById('equipment_select').addEventListener('change', syncQtyMax);
+    syncQtyMax(); // init on page load
+</script>
+
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Equipment</h3>
+
+<div class="card p-3 mb-4">
+    <form action="/add_equipment" method="POST" class="row g-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="col">
+            <input class="form-control" name="name" placeholder="Name">
+        </div>
+        <div class="col">
+            <input class="form-control" type="number" name="qty" placeholder="Quantity" min="1">
+        </div>
+        <div class="col">
+            <input class="form-control" name="category" placeholder="Category">
+        </div>
+        <div class="col-12 col-md-2">
+            <button class="btn btn-primary w-100">Add</button>
+        </div>
+    </form>
+</div>
+
+<div class="card p-3">
+    <table class="table align-middle">
+        <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Available</th>
+            <th>Total</th>
+            <th>Adjust Stock</th>
+            <th>Delete</th>
+        </tr>
+
+        {% for item in items %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.category or '-' }}</td>
+            <td>{{ item.available_quantity }}</td>
+            <td>{{ item.total_quantity }}</td>
+
+            {# Inline qty #}
+            <td>
+                <form action="/update_equipment_qty/{{ item.id }}" method="POST" class="d-flex gap-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="number" name="new_total" class="form-control form-control-sm"
+                           style="width:80px" value="{{ item.total_quantity }}" min="{{ item.total_quantity - item.available_quantity }}">
+                    <button class="btn btn-sm btn-outline-secondary">Save</button>
+                </form>
+            </td>
+
+            {# Delete btn #}
+            <td>
+                <form action="/delete_equipment/{{ item.id }}" method="POST"
+                      onsubmit="return confirm('Delete {{ item.name }}? This cannot be undone.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}
