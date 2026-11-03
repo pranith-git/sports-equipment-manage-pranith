@@ -1,0 +1,79 @@
+services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth_service/Dockerfile
+    environment:
+      AUTH_DATABASE_PATH: /data/auth.db
+      LEGACY_DATABASE_PATH: /app/basedata.db
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:?Set AUTH_TOKEN_SECRET in your environment or .env file}
+    volumes:
+      - auth-data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/api/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  inventory-service:
+    build:
+      context: .
+      dockerfile: inventory_service/Dockerfile
+    environment:
+      INVENTORY_DATABASE_PATH: /data/inventory.db
+      LEGACY_DATABASE_PATH: /app/basedata.db
+      AUTH_SERVICE_URL: http://auth-service:5001
+      SERVICE_REQUEST_TIMEOUT: "5"
+    volumes:
+      - inventory-data:/data
+    depends_on:
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5002/api/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:5001
+      INVENTORY_SERVICE_URL: http://inventory-service:5002
+      SECRET_KEY: ${FRONTEND_SECRET_KEY:?Set FRONTEND_SECRET_KEY in your environment or .env file}
+    ports:
+      - "8081:5000"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      inventory-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/', timeout=5)"
+      interval: 15s
+      timeout: 7s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  auth-data:
+  inventory-data:
