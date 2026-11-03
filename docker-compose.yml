@@ -6,7 +6,6 @@ services:
     environment:
       AUTH_DATABASE_PATH: /data/auth.db
       LEGACY_DATABASE_PATH: /app/basedata.db
-      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:?Set AUTH_TOKEN_SECRET in your environment or .env file}
     volumes:
       - auth-data:/data
     healthcheck:
@@ -54,7 +53,6 @@ services:
     environment:
       AUTH_SERVICE_URL: http://auth-service:5001
       INVENTORY_SERVICE_URL: http://inventory-service:5002
-      SECRET_KEY: ${FRONTEND_SECRET_KEY:?Set FRONTEND_SECRET_KEY in your environment or .env file}
     ports:
       - "8081:5000"
     depends_on:
